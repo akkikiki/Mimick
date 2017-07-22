@@ -1,4 +1,8 @@
-import cPickle
+#import cPickle
+try: 
+    import cPickle
+except ModuleNotFoundError: # Python 3 does not have it
+    import _pickle as cPickle
 import itertools
 import codecs
 import numpy as np

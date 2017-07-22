@@ -9,7 +9,10 @@ from evaluate_morphotags import Evaluator
 import collections
 import argparse
 import random
-import cPickle
+try: 
+    import cPickle
+except ModuleNotFoundError: # Python 3 does not have it
+    import _pickle as cPickle
 import logging
 import progressbar
 import os
@@ -166,7 +169,7 @@ Model input: {}
 """.format(options.dataset, options.use_dev, options.model_file))
 
 if options.debug:
-    print "DEBUG MODE"
+    print("DEBUG MODE")
 
 # ===-----------------------------------------------------------------------===
 # Read in dataset
