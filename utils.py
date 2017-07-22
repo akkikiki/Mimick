@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import dynet as dy
 from sklearn.metrics import confusion_matrix
+from six.moves import xrange
 
 NONE_TAG = "<NONE>"
 POS_KEY = "POS"

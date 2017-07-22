@@ -4,17 +4,24 @@ from collections import Counter
 import collections
 import argparse
 import random
-import cPickle
+try: 
+    import cPickle
+except ModuleNotFoundError: # Python 3 does not have it
+    import _pickle as cPickle
 import logging
 import progressbar
 import os
 import math
 import datetime
 import codecs
+import sys
 import dynet as dy
 import numpy as np
 
-POLYGLOT_UNK = unicode("<UNK>")
+if sys.version_info.major == 3:
+    POLYGLOT_UNK = "<UNK>"
+else:
+    POLYGLOT_UNK = unicode("<UNK>")
 PADDING_CHAR = "<*>"
 
 DEFAULT_CHAR_DIM = 20
@@ -227,7 +234,7 @@ if __name__ == "__main__":
         root_logger.info("\n")
         root_logger.info("Epoch {} complete".format(epoch + 1))
         trainer.update_epoch(1)
-        print trainer.status()
+        print(trainer.status())
 
         # Evaluate dev data
         model.disable_dropout()
@@ -282,7 +289,7 @@ if __name__ == "__main__":
         vec = vocab_words[w]
         top_k = [(wordify(instance),d) for instance,d in sorted([(inst, dist(inst, vec)) for inst in training_instances], key=lambda x: x[1])[:top_to_show]]
         if options.debug:
-            print w, [(i,d) for i,d in top_k]
+            print(w, [(i,d) for i,d in top_k])
         similar_words[w] = top_k
 
 

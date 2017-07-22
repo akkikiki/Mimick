@@ -2,8 +2,12 @@ from __future__ import division
 from _collections import defaultdict
 import codecs
 import argparse
-import cPickle
+try: 
+    import cPickle
+except ModuleNotFoundError: # Python 3 does not have it
+    import _pickle as cPickle
 import collections
+import sys
 import numpy as np
 
 '''
@@ -14,8 +18,12 @@ Inputs:
     pre-trained embeddings will be output by the character model
 '''
 
-POLYGLOT_UNK = unicode("<UNK>")
-W2V_UNK = unicode("UNK")
+if sys.version_info.major == 3:
+    POLYGLOT_UNK = "<UNK>"
+    W2V_UNK = "UNK"
+else:
+    POLYGLOT_UNK = unicode("<UNK>")
+    W2V_UNK = unicode("UNK")
 PADDING_CHAR = "<*>"
 
 Instance = collections.namedtuple("Instance", ["chars", "word_emb"])
@@ -78,12 +86,12 @@ with codecs.open(options.output, "w", "utf-8") as outfile:
     for v in vocab:
         if v not in words:
             test_instances.append(Instance(charseq(v, c2i), np.array([0.0] * dim)))
-    print "Total Number of output words:", total
-    print "Total in Training Vocabulary:", in_vocab
-    print "Percentage in-vocab:", in_vocab / total
-    print "Total in Embeddings vocabulary:", len(words)
-    print "Training set character count: ", training_char_count
-    print "Total haracter count: ", len(c2i)
+    print("Total Number of output words:", total)
+    print("Total in Training Vocabulary:", in_vocab)
+    print("Percentage in-vocab:", in_vocab / total)
+    print("Total in Embeddings vocabulary:", len(words))
+    print("Training set character count: ", training_char_count)
+    print("Total haracter count: ", len(c2i))
 
 c2i[PADDING_CHAR] = len(c2i)
 
