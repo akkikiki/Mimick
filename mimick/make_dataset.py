@@ -6,6 +6,7 @@ try:
     import cPickle
 except ModuleNotFoundError: # Python 3 does not have it
     import _pickle as cPickle
+    #import pickle as cPickle
 import collections
 import sys
 import numpy as np
@@ -29,14 +30,18 @@ PADDING_CHAR = "<*>"
 Instance = collections.namedtuple("Instance", ["chars", "word_emb"])
 
 def read_text_embs(filename):
+    # TODO: refactor to use yield instead of lists
     words = []
     embs = []
+    limit = 1000
     with codecs.open(filename, "r", "utf-8") as f:
-        for line in f:
+        for i, line in enumerate(f):
             split = line.split()
             if len(split) > 2:
                 words.append(split[0])
                 embs.append(np.array([float(s) for s in split[1:]]))
+            if i == limit:
+                break
     return words, embs
 
 def charseq(word, c2i):
@@ -84,14 +89,15 @@ with codecs.open(options.output, "w", "utf-8") as outfile:
         training_instances.append(Instance(charseq(word, c2i), emb))
     training_char_count = len(c2i)
     for v in vocab:
-        if v not in words:
+        #if v not in words:
+        if v not in word_to_ix:
             test_instances.append(Instance(charseq(v, c2i), np.array([0.0] * dim)))
     print("Total Number of output words:", total)
     print("Total in Training Vocabulary:", in_vocab)
     print("Percentage in-vocab:", in_vocab / total)
     print("Total in Embeddings vocabulary:", len(words))
     print("Training set character count: ", training_char_count)
-    print("Total haracter count: ", len(c2i))
+    print("Total character count: ", len(c2i))
 
 c2i[PADDING_CHAR] = len(c2i)
 
@@ -102,5 +108,6 @@ output["training_instances"] = training_instances
 output["test_instances"] = test_instances
 
 # write output
-with open(options.output, "w") as outfile:
+#with open(options.output, "w") as outfile:
+with open(options.output, "wb") as outfile:
     cPickle.dump(output, outfile)

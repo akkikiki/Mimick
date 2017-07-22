@@ -17,6 +17,7 @@ import codecs
 import sys
 import dynet as dy
 import numpy as np
+from six.moves import xrange
 
 if sys.version_info.major == 3:
     POLYGLOT_UNK = "<UNK>"
@@ -34,20 +35,21 @@ class LSTMMimick:
     def __init__(self, c2i, num_lstm_layers=-1,\
                 char_dim=-1, hidden_dim=-1, word_embedding_dim=-1, file=None):
         self.c2i = c2i
-        self.model = dy.Model()
+        self._model = dy.Model()
+        #self._model = dy.ParameterCollection()
         if file == None:
             # Char LSTM Parameters
-            self.char_lookup = self.model.add_lookup_parameters((len(c2i), char_dim))
-            self.char_fwd_lstm = dy.LSTMBuilder(num_lstm_layers, char_dim, hidden_dim, self.model)
-            self.char_bwd_lstm = dy.LSTMBuilder(num_lstm_layers, char_dim, hidden_dim, self.model)
+            self.char_lookup = self._model.add_lookup_parameters((len(c2i), char_dim))
+            self.char_fwd_lstm = dy.LSTMBuilder(num_lstm_layers, char_dim, hidden_dim, self._model)
+            self.char_bwd_lstm = dy.LSTMBuilder(num_lstm_layers, char_dim, hidden_dim, self._model)
 
             # Post-LSTM Parameters
-            self.lstm_to_rep_params = self.model.add_parameters((word_embedding_dim, hidden_dim * 2))
-            self.lstm_to_rep_bias = self.model.add_parameters(word_embedding_dim)
-            self.mlp_out = self.model.add_parameters((word_embedding_dim, word_embedding_dim))
-            self.mlp_out_bias = self.model.add_parameters(word_embedding_dim)
+            self.lstm_to_rep_params = self._model.add_parameters((word_embedding_dim, hidden_dim * 2))
+            self.lstm_to_rep_bias = self._model.add_parameters(word_embedding_dim)
+            self.mlp_out = self._model.add_parameters((word_embedding_dim, word_embedding_dim))
+            self.mlp_out_bias = self._model.add_parameters(word_embedding_dim)
         else:
-            model_members = iter(self.model.load(file))
+            model_members = iter(self._model.load(file))
             self.char_lookup = model_members.next()
             self.char_fwd_lstm = model_members.next()
             self.char_bwd_lstm = model_members.next()
@@ -98,12 +100,14 @@ class LSTMMimick:
         members_to_save.append(self.lstm_to_rep_bias)
         members_to_save.append(self.mlp_out)
         members_to_save.append(self.mlp_out_bias)
-        self.model.save(file_name, members_to_save)
-        cPickle.dump(self.c2i, open(file_name[:-4] + '.c2i', 'w'))
+        #self._model.save(file_name, members_to_save)
+        dy.save(file_name, members_to_save)
+        #cPickle.dump(self.c2i, open(file_name[:-4] + '.c2i', 'w'))
+        cPickle.dump(self.c2i, open(file_name[:-4] + '.c2i', 'wb'))
 
     @property
     def model(self):
-        return self.model
+        return self._model
 
 
 def wordify(instance):
@@ -156,7 +160,8 @@ if __name__ == "__main__":
     root_logger.info("Model output location: {}\n".format(options.model_out))
 
     # Load training set
-    dataset = cPickle.load(open(options.dataset, "r"))
+    #dataset = cPickle.load(open(options.dataset, "r"))
+    dataset = cPickle.load(open(options.dataset, "rb"))
     c2i = dataset["c2i"]
     i2c = { i: c for c, i in c2i.items() } # inverse map
     training_instances = dataset["training_instances"]
@@ -170,7 +175,12 @@ if __name__ == "__main__":
             vocab_words[vw.strip()] = np.array([0.0] * emb_dim)
 
     model = LSTMMimick(c2i, options.num_lstm_layers, options.char_dim, options.hidden_dim, emb_dim)
-    trainer = dy.MomentumSGDTrainer(model.model, options.learning_rate, 0.9, 0.1)
+    #model = LSTMMimick(c2i, options.num_lstm_layers, options.char_dim, options.hidden_dim, emb_dim)
+    trainer = dy.MomentumSGDTrainer(model._model, options.learning_rate, 0.9)
+    #trainer = dy.MomentumSGDTrainer(model._model, options.learning_rate, 0.9, 0.1)
+    #    e0(number): Initial learning rate (default: 0.1)
+    #    mom(number): Momentum (default: 0.9)
+    #    edecay(number): Learning rate decay parameter (default: 0.0)
     root_logger.info("Training Algorithm: {}".format(type(trainer)))
 
     root_logger.info("Number training instances: {}".format(len(training_instances)))
