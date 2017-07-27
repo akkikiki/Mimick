@@ -50,6 +50,8 @@ class LSTMMimick:
             self.mlp_out_bias = self._model.add_parameters(word_embedding_dim)
         else:
             model_members = iter(self._model.load(file))
+            #pc2 = dy.ParameterCollection()
+            #model_members = iter(dy.load(file, pc2))
             self.char_lookup = model_members.next()
             self.char_fwd_lstm = model_members.next()
             self.char_bwd_lstm = model_members.next()
@@ -307,7 +309,8 @@ if __name__ == "__main__":
     if options.output is not None:
         with codecs.open(options.output, "w", "utf-8") as writer:
             writer.write("{} {}\n".format(len(vocab_words), emb_dim))
-            for vw, emb in vocab_words.iteritems():
+            #for vw, emb in vocab_words.iteritems():
+            for vw, emb in vocab_words.items():
                 writer.write(vw + " ")
                 for i in emb:
                     writer.write(str(i) + " ")

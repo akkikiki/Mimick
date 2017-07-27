@@ -3,7 +3,10 @@
 An interactive tool for querying a Mimick model for nearest vectors of OOV words.
 '''
 import sys
-import cPickle as pickle
+try: 
+    import cPickle as pickle
+except ModuleNotFoundError: # Python 3 does not have it
+    import pickle
 import numpy as np
 import collections
 import argparse
@@ -30,11 +33,13 @@ if __name__ == "__main__":
     opts = parser.parse_args()
 
     # load model
-    c2i = pickle.load(open(opts.c2i))
+    #c2i = pickle.load(open(opts.c2i))
+    c2i = pickle.load(open(opts.c2i, "rb"))
     mimick = LSTMMimick(c2i, file=opts.mimick)
 
     # load vocab
-    voc_words, voc_vecs = pickle.load(open(opts.vectors))
+    #voc_words, voc_vecs = pickle.load(open(opts.vectors))
+    voc_words, voc_vecs = pickle.load(open(opts.vectors, "rb"))
 
     # prompt
     while True:
@@ -46,4 +51,4 @@ if __name__ == "__main__":
         word_chars = [c2i[c] for c in next_word]
         pred_vec = mimick.predict_emb(word_chars).value()
         top_k = sorted([(iv, dist(iv_vec, pred_vec)) for iv,iv_vec in zip(voc_words, voc_vecs)], key=lambda x: x[1])[:10]
-        print '\n'.join(['{}:\t{:.3f}'.format(near[0], 1.0 - near[1]) for near in top_k])
+        print('\n'.join(['{}:\t{:.3f}'.format(near[0], 1.0 - near[1]) for near in top_k]))

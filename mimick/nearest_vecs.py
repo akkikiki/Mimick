@@ -7,14 +7,21 @@ from collections import Counter
 import collections
 import argparse
 import random
-import cPickle
+try: 
+    import cPickle
+except ModuleNotFoundError: # Python 3 does not have it
+    import _pickle as cPickle
 import math
 import codecs
 import numpy as np
+import sys
 
 __author__ = "Yuval Pinter, 2017"
 
-POLYGLOT_UNK = unicode("<UNK>")
+if sys.version_info.major == 3:
+    POLYGLOT_UNK = "<UNK>"
+else:
+    POLYGLOT_UNK = unicode("<UNK>")
 PADDING_CHAR = "<*>"
 
 Instance = collections.namedtuple("Instance", ["chars", "word_emb"])
@@ -38,11 +45,12 @@ parser.add_argument("--words", dest="words_to_check", nargs='*', help="Words to 
 parser.add_argument("--top-to-show", dest="top_to_show", default=10, help="Nearest to show per word")
 options = parser.parse_args()
 
-print "Training dataset: {}".format(options.dataset)
-print "Embeddings location: {}\n".format(options.embs)
+print("Training dataset: {}".format(options.dataset))
+print("Embeddings location: {}\n".format(options.embs))
 
 # Load training set
-dataset = cPickle.load(open(options.dataset, "r"))
+#dataset = cPickle.load(open(options.dataset, "r"))
+dataset = cPickle.load(open(options.dataset, "rb"))
 c2i = dataset["c2i"]
 i2c = { i: c for c, i in c2i.items() } # inverse map
 words_to_check = options.words_to_check
@@ -54,7 +62,7 @@ if words_to_check is None:
     random.shuffle(test_words)
     words_to_check = test_words[:25]
     
-print "Checking words: {}".format(", ".join(words_to_check))
+print("Checking words: {}".format(", ".join(words_to_check)))
 
 test_vecs = {}
 iv_vecs = {}
@@ -70,11 +78,11 @@ with codecs.open(options.embs, "r", "utf-8") as embs_file:
                 iv_vecs[word] = vec
 
 #print "Total in-vocab vecs: {} of size {}".format(len(iv_vecs), len(iv_vecs["the"]))
-print "Total test vecs: {}".format(len(test_vecs))
+print("Total test vecs: {}".format(len(test_vecs)))
 
 similar_words = {}
 for w, vec in test_vecs.iteritems():
     top_k = sorted([(iv, dist(iv_vec, vec)) for iv,iv_vec in iv_vecs.iteritems()], key=lambda x: x[1])[:options.top_to_show]
     similar_words[w] = top_k
 
-print "\n", "\n".join([k + ":\t" + " ".join([t[0] for t in v]) for k,v in similar_words.iteritems()])
+print("\n", "\n".join([k + ":\t" + " ".join([t[0] for t in v]) for k,v in similar_words.iteritems()]))

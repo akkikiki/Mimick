@@ -5,8 +5,8 @@ import argparse
 try: 
     import cPickle
 except ModuleNotFoundError: # Python 3 does not have it
-    import _pickle as cPickle
-    #import pickle as cPickle
+    #import _pickle as cPickle
+    import pickle as cPickle
 import collections
 import sys
 import numpy as np
@@ -75,7 +75,8 @@ with codecs.open(options.vocab, "r", "utf-8") as f:
 if options.w2v_format:
     words, embs = read_text_embs(options.vectors)
 else:
-    words, embs = cPickle.load(open(options.vectors, "r"))
+    #words, embs = cPickle.load(open(options.vectors, "r"))
+    words, embs = cPickle.load(open(options.vectors, "rb"), encoding='bytes')
 dim = len(embs[0])
 word_to_ix = {w : i for (i,w) in enumerate(words)}
 
