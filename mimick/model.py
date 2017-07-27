@@ -15,8 +15,12 @@ import math
 import datetime
 import codecs
 import sys
-import gdynet as dy
 #import dynet as dy
+import _gdynet as dy
+dyparams = dy.DynetParams()
+dyparams.set_random_seed(1)
+dyparams.set_mem(8192)
+dyparams.init()
 import numpy as np
 from six.moves import xrange
 
