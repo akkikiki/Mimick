@@ -15,7 +15,8 @@ import math
 import datetime
 import codecs
 import sys
-import dynet as dy
+import gdynet as dy
+#import dynet as dy
 import numpy as np
 from six.moves import xrange
 
